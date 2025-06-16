@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Layers, FileText, HelpCircle, Globe, Users } from 'lucide-react';
+import { BookOpen, Layers, FileText, HelpCircle, Globe, Users, LayoutDashboard } from 'lucide-react';
+import OverviewDashboard from '@/components/crud/OverviewDashboard';
 import CoursesCRUD from '@/components/crud/CoursesCRUD';
 import ModulesCRUD from '@/components/crud/ModulesCRUD';
 import PartsCRUD from '@/components/crud/PartsCRUD';
@@ -10,9 +11,10 @@ import LanguagesCRUD from '@/components/crud/LanguagesCRUD';
 import UsersCRUD from '@/components/crud/UsersCRUD';
 
 const CRUDDashboard = () => {
-  const [activeTab, setActiveTab] = useState('courses');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const tabs = [
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, color: 'bg-gradient-to-br from-indigo-500 to-purple-500' },
     { id: 'courses', label: 'Courses', icon: BookOpen, color: 'bg-gradient-to-br from-purple-500 to-pink-500' },
     { id: 'modules', label: 'Modules', icon: Layers, color: 'bg-gradient-to-br from-blue-500 to-cyan-500' },
     { id: 'parts', label: 'Parts', icon: FileText, color: 'bg-gradient-to-br from-green-500 to-emerald-500' },
@@ -38,8 +40,8 @@ const CRUDDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Properly structured TabsList */}
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-4 h-auto bg-transparent p-0">
+          {/* Tab Navigation */}
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 gap-4 h-auto bg-transparent p-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -60,6 +62,9 @@ const CRUDDashboard = () => {
 
           {/* Tab Content */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+            <TabsContent value="overview" className="m-0">
+              <OverviewDashboard />
+            </TabsContent>
             <TabsContent value="courses" className="m-0">
               <CoursesCRUD />
             </TabsContent>
