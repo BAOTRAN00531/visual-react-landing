@@ -3,17 +3,70 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Eye, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import LanguageForm from './forms/LanguageForm';
+import LanguageDetails from './details/LanguageDetails';
+import DeleteConfirmation from '../admin/DeleteConfirmation';
+
+interface Language {
+  id: number;
+  name: string;
+  code: string;
+  flag: string;
+  coursesCount: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  popularity: 'High' | 'Medium' | 'Low';
+}
 
 const LanguagesCRUD = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const languages = [
+  const [languages, setLanguages] = useState<Language[]>([
     { id: 1, name: 'Spanish', code: 'es', flag: '🇪🇸', coursesCount: 15, difficulty: 'Medium', popularity: 'High' },
     { id: 2, name: 'French', code: 'fr', flag: '🇫🇷', coursesCount: 12, difficulty: 'Medium', popularity: 'High' },
     { id: 3, name: 'German', code: 'de', flag: '🇩🇪', coursesCount: 8, difficulty: 'Hard', popularity: 'Medium' },
     { id: 4, name: 'Italian', code: 'it', flag: '🇮🇹', coursesCount: 6, difficulty: 'Easy', popularity: 'Medium' },
-  ];
+  ]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const filteredLanguages = languages.filter(language =>
+    language.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    language.code.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCreate = (languageData: Omit<Language, 'id'>) => {
+    const newLanguage = {
+      ...languageData,
+      id: Math.max(...languages.map(l => l.id)) + 1,
+    };
+    setLanguages([...languages, newLanguage]);
+    setIsCreateOpen(false);
+  };
+
+  const handleUpdate = (languageData: Omit<Language, 'id'>) => {
+    if (selectedLanguage) {
+      setLanguages(languages.map(language => 
+        language.id === selectedLanguage.id 
+          ? { ...languageData, id: selectedLanguage.id }
+          : language
+      ));
+      setIsEditOpen(false);
+      setSelectedLanguage(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedLanguage) {
+      setLanguages(languages.filter(language => language.id !== selectedLanguage.id));
+      setIsDeleteOpen(false);
+      setSelectedLanguage(null);
+    }
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -46,10 +99,20 @@ const LanguagesCRUD = () => {
           </div>
         </div>
         
-        <Button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <Plus className="w-5 h-5 mr-2" />
-          Add Language
-        </Button>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Plus className="w-5 h-5 mr-2" />
+              Add Language
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-gray-800">Create New Language</DialogTitle>
+            </DialogHeader>
+            <LanguageForm onSubmit={handleCreate} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="mb-6">
@@ -62,7 +125,7 @@ const LanguagesCRUD = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {languages.map((language) => (
+        {filteredLanguages.map((language) => (
           <div
             key={language.id}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
@@ -95,19 +158,82 @@ const LanguagesCRUD = () => {
             </div>
             
             <div className="flex justify-center gap-2 pt-4 border-t border-gray-200">
-              <Button variant="ghost" size="sm" className="rounded-xl hover:bg-blue-100">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-blue-100"
+                onClick={() => {
+                  setSelectedLanguage(language);
+                  setIsViewOpen(true);
+                }}
+              >
                 <Eye className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="rounded-xl hover:bg-yellow-100">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-yellow-100"
+                onClick={() => {
+                  setSelectedLanguage(language);
+                  setIsEditOpen(true);
+                }}
+              >
                 <Edit className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="rounded-xl hover:bg-red-100 text-red-500">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-red-100 text-red-500"
+                onClick={() => {
+                  setSelectedLanguage(language);
+                  setIsDeleteOpen(true);
+                }}
+              >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Dialogs */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Edit Language</DialogTitle>
+          </DialogHeader>
+          {selectedLanguage && (
+            <LanguageForm
+              initialData={selectedLanguage}
+              onSubmit={handleUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Language Details</DialogTitle>
+          </DialogHeader>
+          {selectedLanguage && <LanguageDetails language={selectedLanguage} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Delete Language</DialogTitle>
+          </DialogHeader>
+          {selectedLanguage && (
+            <DeleteConfirmation
+              userName={selectedLanguage.name}
+              onConfirm={handleDelete}
+              onCancel={() => setIsDeleteOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -3,15 +3,69 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Eye, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import PartForm from './forms/PartForm';
+import PartDetails from './details/PartDetails';
+import DeleteConfirmation from '../admin/DeleteConfirmation';
+
+interface Part {
+  id: number;
+  title: string;
+  type: 'video' | 'exercise';
+  moduleId: number;
+  moduleName: string;
+  order: number;
+  duration: string;
+  status: 'active' | 'inactive';
+}
 
 const PartsCRUD = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const parts = [
+  const [parts, setParts] = useState<Part[]>([
     { id: 1, title: 'Introduction to Greetings', type: 'video', moduleId: 1, moduleName: 'Basic Greetings', order: 1, duration: '5 min', status: 'active' },
     { id: 2, title: 'Common Phrases Practice', type: 'exercise', moduleId: 1, moduleName: 'Basic Greetings', order: 2, duration: '10 min', status: 'active' },
-  ];
+  ]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const filteredParts = parts.filter(part =>
+    part.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    part.moduleName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCreate = (partData: Omit<Part, 'id'>) => {
+    const newPart = {
+      ...partData,
+      id: Math.max(...parts.map(p => p.id)) + 1,
+    };
+    setParts([...parts, newPart]);
+    setIsCreateOpen(false);
+  };
+
+  const handleUpdate = (partData: Omit<Part, 'id'>) => {
+    if (selectedPart) {
+      setParts(parts.map(part => 
+        part.id === selectedPart.id 
+          ? { ...partData, id: selectedPart.id }
+          : part
+      ));
+      setIsEditOpen(false);
+      setSelectedPart(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedPart) {
+      setParts(parts.filter(part => part.id !== selectedPart.id));
+      setIsDeleteOpen(false);
+      setSelectedPart(null);
+    }
+  };
 
   return (
     <div className="p-8">
@@ -26,10 +80,20 @@ const PartsCRUD = () => {
           </div>
         </div>
         
-        <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-          <Plus className="w-5 h-5 mr-2" />
-          Add Part
-        </Button>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Plus className="w-5 h-5 mr-2" />
+              Add Part
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-gray-800">Create New Part</DialogTitle>
+            </DialogHeader>
+            <PartForm onSubmit={handleCreate} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="mb-6">
@@ -42,7 +106,7 @@ const PartsCRUD = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {parts.map((part) => (
+        {filteredParts.map((part) => (
           <div
             key={part.id}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
@@ -58,23 +122,94 @@ const PartsCRUD = () => {
             <h3 className="text-lg font-black text-gray-800 mb-2">{part.title}</h3>
             <p className="text-xs text-gray-500 mb-3">{part.moduleName}</p>
             
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm mb-4">
               <span className="text-gray-600">{part.duration}</span>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="rounded-xl hover:bg-blue-100">
-                  <Eye className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="rounded-xl hover:bg-yellow-100">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="rounded-xl hover:bg-red-100 text-red-500">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Badge className={`text-xs font-bold rounded-full ${
+                part.status === 'active' 
+                  ? 'bg-green-100 text-green-800 border-green-200' 
+                  : 'bg-gray-100 text-gray-800 border-gray-200'
+              }`}>
+                {part.status}
+              </Badge>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-blue-100"
+                onClick={() => {
+                  setSelectedPart(part);
+                  setIsViewOpen(true);
+                }}
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-yellow-100"
+                onClick={() => {
+                  setSelectedPart(part);
+                  setIsEditOpen(true);
+                }}
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-xl hover:bg-red-100 text-red-500"
+                onClick={() => {
+                  setSelectedPart(part);
+                  setIsDeleteOpen(true);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Dialogs */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Edit Part</DialogTitle>
+          </DialogHeader>
+          {selectedPart && (
+            <PartForm
+              initialData={selectedPart}
+              onSubmit={handleUpdate}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Part Details</DialogTitle>
+          </DialogHeader>
+          {selectedPart && <PartDetails part={selectedPart} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="max-w-md rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-gray-800">Delete Part</DialogTitle>
+          </DialogHeader>
+          {selectedPart && (
+            <DeleteConfirmation
+              userName={selectedPart.title}
+              onConfirm={handleDelete}
+              onCancel={() => setIsDeleteOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

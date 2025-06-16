@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Layers, FileText, HelpCircle, Globe } from 'lucide-react';
+import { BookOpen, Layers, FileText, HelpCircle, Globe, Users } from 'lucide-react';
 import CoursesCRUD from '@/components/crud/CoursesCRUD';
 import ModulesCRUD from '@/components/crud/ModulesCRUD';
 import PartsCRUD from '@/components/crud/PartsCRUD';
 import QuestionsCRUD from '@/components/crud/QuestionsCRUD';
 import LanguagesCRUD from '@/components/crud/LanguagesCRUD';
+import UsersCRUD from '@/components/crud/UsersCRUD';
 
 const CRUDDashboard = () => {
   const [activeTab, setActiveTab] = useState('courses');
@@ -17,6 +18,7 @@ const CRUDDashboard = () => {
     { id: 'parts', label: 'Parts', icon: FileText, color: 'bg-gradient-to-br from-green-500 to-emerald-500' },
     { id: 'questions', label: 'Questions', icon: HelpCircle, color: 'bg-gradient-to-br from-orange-500 to-red-500' },
     { id: 'languages', label: 'Languages', icon: Globe, color: 'bg-gradient-to-br from-indigo-500 to-purple-500' },
+    { id: 'users', label: 'Users', icon: Users, color: 'bg-gradient-to-br from-pink-500 to-rose-500' },
   ];
 
   return (
@@ -37,7 +39,7 @@ const CRUDDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Properly structured TabsList */}
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-4 h-auto bg-transparent p-0">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-4 h-auto bg-transparent p-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -72,6 +74,9 @@ const CRUDDashboard = () => {
             </TabsContent>
             <TabsContent value="languages" className="m-0">
               <LanguagesCRUD />
+            </TabsContent>
+            <TabsContent value="users" className="m-0">
+              <UsersCRUD />
             </TabsContent>
           </div>
         </Tabs>
