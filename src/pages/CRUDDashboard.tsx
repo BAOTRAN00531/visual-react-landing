@@ -36,22 +36,15 @@ const CRUDDashboard = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Custom Tab Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {/* Properly structured TabsList */}
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-4 h-auto bg-transparent p-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className={`
-                    relative overflow-hidden rounded-2xl p-6 h-24 flex flex-col items-center justify-center gap-2
-                    transition-all duration-300 transform hover:scale-105 hover:shadow-xl
-                    border-2 border-white/50 bg-white/60 backdrop-blur-sm
-                    data-[state=active]:scale-105 data-[state=active]:shadow-2xl
-                    data-[state=active]:border-white/80 data-[state=active]:bg-white/80
-                  `}
-                  onClick={() => setActiveTab(tab.id)}
+                  className="relative overflow-hidden rounded-2xl p-6 h-24 flex flex-col items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 hover:shadow-xl border-2 border-white/50 bg-white/60 backdrop-blur-sm data-[state=active]:scale-105 data-[state=active]:shadow-2xl data-[state=active]:border-white/80 data-[state=active]:bg-white/80"
                 >
                   <div className={`absolute inset-0 opacity-10 ${tab.color}`} />
                   <Icon className={`w-6 h-6 ${activeTab === tab.id ? 'text-gray-800' : 'text-gray-600'}`} />
@@ -61,7 +54,7 @@ const CRUDDashboard = () => {
                 </TabsTrigger>
               );
             })}
-          </div>
+          </TabsList>
 
           {/* Tab Content */}
           <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 overflow-hidden">
