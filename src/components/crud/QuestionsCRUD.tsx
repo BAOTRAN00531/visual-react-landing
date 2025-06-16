@@ -204,7 +204,7 @@ const QuestionsCRUD = () => {
           </DialogHeader>
           {selectedQuestion && (
             <DeleteConfirmation
-              userName={question.question}
+              userName={selectedQuestion.question}
               onConfirm={handleDelete}
               onCancel={() => setIsDeleteOpen(false)}
             />

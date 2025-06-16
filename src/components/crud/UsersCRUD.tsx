@@ -169,7 +169,6 @@ const UsersCRUD = () => {
                   <Switch
                     checked={user.status === 'active'}
                     onCheckedChange={() => toggleUserStatus(user.id)}
-                    size="sm"
                   />
                   <span className={`text-sm ${
                     user.status === 'active' ? 'text-green-600' : 'text-gray-500'
