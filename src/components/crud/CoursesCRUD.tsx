@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Eye, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, BookOpen, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CourseForm from './forms/CourseForm';
 import CourseDetails from './details/CourseDetails';
 import DeleteConfirmation from '../admin/DeleteConfirmation';
@@ -48,17 +49,41 @@ const CoursesCRUD = () => {
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('title-asc');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const filteredCourses = courses.filter(course =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.language.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.level.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAndSortedCourses = courses
+    .filter(course =>
+      course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.language.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.level.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'title-asc':
+          return a.title.localeCompare(b.title);
+        case 'title-desc':
+          return b.title.localeCompare(a.title);
+        case 'status-asc':
+          return a.status.localeCompare(b.status);
+        case 'status-desc':
+          return b.status.localeCompare(a.status);
+        case 'modules-asc':
+          return a.modulesCount - b.modulesCount;
+        case 'modules-desc':
+          return b.modulesCount - a.modulesCount;
+        case 'duration-asc':
+          return parseInt(a.duration) - parseInt(b.duration);
+        case 'duration-desc':
+          return parseInt(b.duration) - parseInt(a.duration);
+        default:
+          return 0;
+      }
+    });
 
   const handleCreate = (courseData: Omit<Course, 'id'>) => {
     const newCourse = {
@@ -128,19 +153,35 @@ const CoursesCRUD = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Sort */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <Input
           placeholder="Search courses by title, language, or level..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md rounded-2xl border-2 border-gray-200 focus:border-purple-400 focus:ring-purple-400"
         />
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[280px] rounded-2xl border-2 border-gray-200 focus:border-purple-400">
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl">
+            <SelectItem value="title-asc">Title: A-Z</SelectItem>
+            <SelectItem value="title-desc">Title: Z-A</SelectItem>
+            <SelectItem value="status-asc">Status: Active First</SelectItem>
+            <SelectItem value="status-desc">Status: Inactive First</SelectItem>
+            <SelectItem value="modules-asc">Modules: Low to High</SelectItem>
+            <SelectItem value="modules-desc">Modules: High to Low</SelectItem>
+            <SelectItem value="duration-asc">Duration: Short to Long</SelectItem>
+            <SelectItem value="duration-desc">Duration: Long to Short</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
+        {filteredAndSortedCourses.map((course) => (
           <div
             key={course.id}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
