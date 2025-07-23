@@ -9,20 +9,60 @@ import QuestionForm from './forms/QuestionForm';
 import QuestionDetails from './details/QuestionDetails';
 import DeleteConfirmation from '../admin/DeleteConfirmation';
 
+type QuestionType = 'multiple-choice' | 'multiple-choice-multi' | 'fill-in-blank' | 'image-selection' | 'word-matching' | 'reorder-sentence';
+
+interface QuestionOption {
+  id: string;
+  text: string;
+  image?: string;
+  isCorrect: boolean;
+}
+
 interface Question {
   id: number;
   question: string;
-  type: 'multiple-choice' | 'text-input';
+  type: QuestionType;
   partId: number;
   partName: string;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
+  pronunciation?: string;
+  audio?: string;
+  questionImage?: string;
+  options: QuestionOption[];
+  hint?: string;
+  explanation?: string;
 }
 
 const QuestionsCRUD = () => {
   const [questions, setQuestions] = useState<Question[]>([
-    { id: 1, question: 'How do you say "Hello" in Spanish?', type: 'multiple-choice', partId: 2, partName: 'Common Phrases Practice', difficulty: 'easy', points: 10 },
-    { id: 2, question: 'Translate: "¿Cómo estás?"', type: 'text-input', partId: 2, partName: 'Common Phrases Practice', difficulty: 'medium', points: 15 },
+    { 
+      id: 1, 
+      question: 'How do you say "Hello" in Spanish?', 
+      type: 'multiple-choice', 
+      partId: 2, 
+      partName: 'Common Phrases Practice', 
+      difficulty: 'easy', 
+      points: 10,
+      options: [
+        { id: '1', text: 'Hola', isCorrect: true },
+        { id: '2', text: 'Adiós', isCorrect: false },
+        { id: '3', text: 'Gracias', isCorrect: false },
+        { id: '4', text: 'Por favor', isCorrect: false }
+      ]
+    },
+    { 
+      id: 2, 
+      question: 'Translate: "¿Cómo estás?"', 
+      type: 'fill-in-blank', 
+      partId: 2, 
+      partName: 'Common Phrases Practice', 
+      difficulty: 'medium', 
+      points: 15,
+      options: [
+        { id: '1', text: 'How are you?', isCorrect: true }
+      ]
+    },
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');

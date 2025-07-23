@@ -3,14 +3,29 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { HelpCircle, FileText, Star, Target } from 'lucide-react';
 
+type QuestionType = 'multiple-choice' | 'multiple-choice-multi' | 'fill-in-blank' | 'image-selection' | 'word-matching' | 'reorder-sentence';
+
+interface QuestionOption {
+  id: string;
+  text: string;
+  image?: string;
+  isCorrect: boolean;
+}
+
 interface Question {
   id: number;
   question: string;
-  type: 'multiple-choice' | 'text-input';
+  type: QuestionType;
   partId: number;
   partName: string;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
+  pronunciation?: string;
+  audio?: string;
+  questionImage?: string;
+  options: QuestionOption[];
+  hint?: string;
+  explanation?: string;
 }
 
 interface QuestionDetailsProps {
