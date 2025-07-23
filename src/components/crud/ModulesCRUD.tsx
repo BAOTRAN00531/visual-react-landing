@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Eye, Layers } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Layers, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ModuleForm from './forms/ModuleForm';
 import ModuleDetails from './details/ModuleDetails';
 import DeleteConfirmation from '../admin/DeleteConfirmation';
@@ -48,16 +49,40 @@ const ModulesCRUD = () => {
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('title-asc');
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const filteredModules = modules.filter(module =>
-    module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    module.courseName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAndSortedModules = modules
+    .filter(module =>
+      module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.courseName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'title-asc':
+          return a.title.localeCompare(b.title);
+        case 'title-desc':
+          return b.title.localeCompare(a.title);
+        case 'status-asc':
+          return a.status.localeCompare(b.status);
+        case 'status-desc':
+          return b.status.localeCompare(a.status);
+        case 'parts-asc':
+          return a.partsCount - b.partsCount;
+        case 'parts-desc':
+          return b.partsCount - a.partsCount;
+        case 'duration-asc':
+          return parseInt(a.duration) - parseInt(b.duration);
+        case 'duration-desc':
+          return parseInt(b.duration) - parseInt(a.duration);
+        default:
+          return 0;
+      }
+    });
 
   const handleCreate = (moduleData: Omit<Module, 'id'>) => {
     const newModule = {
@@ -118,19 +143,35 @@ const ModulesCRUD = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Sort */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <Input
           placeholder="Search modules by title or course..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-md rounded-2xl border-2 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
         />
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[280px] rounded-2xl border-2 border-gray-200 focus:border-blue-400">
+            <ArrowUpDown className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl">
+            <SelectItem value="title-asc">Title: A-Z</SelectItem>
+            <SelectItem value="title-desc">Title: Z-A</SelectItem>
+            <SelectItem value="status-asc">Status: Active First</SelectItem>
+            <SelectItem value="status-desc">Status: Inactive First</SelectItem>
+            <SelectItem value="parts-asc">Parts: Low to High</SelectItem>
+            <SelectItem value="parts-desc">Parts: High to Low</SelectItem>
+            <SelectItem value="duration-asc">Duration: Short to Long</SelectItem>
+            <SelectItem value="duration-desc">Duration: Long to Short</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Modules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredModules.map((module) => (
+        {filteredAndSortedModules.map((module) => (
           <div
             key={module.id}
             className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
