@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Upload, Play, Volume2, Eye, X, Image as ImageIcon } from 'lucide-react';
+import WordSuggestion from '../WordSuggestion';
+import { LexiconUnit, LexiconPhrase } from '../LexiconCRUD';
 
 type QuestionType = 'multiple-choice' | 'multiple-choice-multi' | 'fill-in-blank' | 'image-selection' | 'word-matching' | 'reorder-sentence';
 
@@ -102,6 +104,37 @@ const QuestionForm = ({ initialData, onSubmit }: QuestionFormProps) => {
     }
   };
 
+  const handleWordSuggestion = (item: LexiconUnit | LexiconPhrase, optionIndex?: number) => {
+    if (optionIndex !== undefined) {
+      // For specific option
+      const updatedOptions = [...formData.options];
+      updatedOptions[optionIndex] = {
+        ...updatedOptions[optionIndex],
+        text: item.text,
+        image: item.image || ''
+      };
+      setFormData({ ...formData, options: updatedOptions });
+    } else {
+      // For fill-in-blank correct answer
+      const updatedOptions = [...formData.options];
+      updatedOptions[0] = {
+        ...updatedOptions[0],
+        text: item.text
+      };
+      setFormData({ ...formData, options: updatedOptions });
+    }
+    
+    // Auto-fill pronunciation if question doesn't have it
+    if (!formData.pronunciation && item.ipa) {
+      setFormData(prev => ({ ...prev, pronunciation: item.ipa }));
+    }
+    
+    // Auto-fill audio if question doesn't have it
+    if (!formData.audio && item.audio) {
+      setFormData(prev => ({ ...prev, audio: item.audio }));
+    }
+  };
+
   const getQuestionTypeLabel = (type: QuestionType) => {
     const labels = {
       'multiple-choice': 'Multiple Choice (1 correct)',
@@ -119,12 +152,18 @@ const QuestionForm = ({ initialData, onSubmit }: QuestionFormProps) => {
       return (
         <div className="space-y-2">
           <Label className="text-sm font-bold text-gray-700">Correct Answer</Label>
-          <Input
-            value={formData.options[0]?.text || ''}
-            onChange={(e) => updateOption('1', 'text', e.target.value)}
-            className="rounded-2xl border-2 border-gray-200 focus:border-blue-400"
-            placeholder="Enter the correct answer..."
-          />
+          <div className="flex gap-2">
+            <Input
+              value={formData.options[0]?.text || ''}
+              onChange={(e) => updateOption('1', 'text', e.target.value)}
+              className="rounded-2xl border-2 border-gray-200 focus:border-blue-400 flex-1"
+              placeholder="Enter the correct answer..."
+            />
+            <WordSuggestion 
+              onSelect={(item) => handleWordSuggestion(item)}
+              placeholder="Suggest Answer"
+            />
+          </div>
         </div>
       );
     }
@@ -156,12 +195,18 @@ const QuestionForm = ({ initialData, onSubmit }: QuestionFormProps) => {
                 <span className="text-sm font-medium text-gray-600">Correct</span>
               </div>
               
-              <Input
-                value={option.text}
-                onChange={(e) => updateOption(option.id, 'text', e.target.value)}
-                placeholder={`Option ${index + 1}...`}
-                className="flex-1 rounded-xl border border-gray-200"
-              />
+              <div className="flex-1 flex gap-2">
+                <Input
+                  value={option.text}
+                  onChange={(e) => updateOption(option.id, 'text', e.target.value)}
+                  placeholder={`Option ${index + 1}...`}
+                  className="flex-1 rounded-xl border border-gray-200"
+                />
+                <WordSuggestion 
+                  onSelect={(item) => handleWordSuggestion(item, index)}
+                  placeholder="Suggest"
+                />
+              </div>
 
               {formData.type === 'image-selection' && (
                 <div className="flex items-center space-x-2">
